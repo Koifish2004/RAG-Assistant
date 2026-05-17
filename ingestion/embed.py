@@ -16,3 +16,11 @@ def embed_chunks(chunks):
             "embedding": vector
         })
     return embedded
+
+
+def embed_query(text):
+    response = requests.post(OLLAMA_URL, json={
+        "model": MODEL,
+        "prompt": text
+    })
+    return response.json()["embedding"]
