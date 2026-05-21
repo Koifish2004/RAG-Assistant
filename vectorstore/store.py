@@ -1,7 +1,10 @@
 import chromadb
 
 client = chromadb.PersistentClient(path="vectorstore/db")
-collection = client.get_or_create_collection(name="study_agent")
+collection = client.get_or_create_collection(
+    name="study_agent",
+    metadata={"hnsw:space": "cosine"}
+)
 
 def store(embedded_chunks):
     ids        = []

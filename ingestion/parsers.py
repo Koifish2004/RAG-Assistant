@@ -4,7 +4,8 @@ def parse_pdf(filepath):
     doc = pymupdf.open(filepath)
     pages = []
     for i, page in enumerate(doc):
-        text = page.get_text()
+        text = page.get_text("text", sort=True)
+
         if text.strip():
             pages.append({
                 "text": text,
