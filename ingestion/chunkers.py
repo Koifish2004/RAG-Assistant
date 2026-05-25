@@ -1,6 +1,6 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-def chunk(pages, chunk_size=500, chunk_overlap=50):
+def chunk(pages, chunk_size=500, chunk_overlap=50, min_chunk_length=100):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
@@ -10,6 +10,8 @@ def chunk(pages, chunk_size=500, chunk_overlap=50):
     for page in pages:
         splits = splitter.split_text(page["text"])
         for i, split in enumerate(splits):
+            if len(split.strip()) < min_chunk_length:
+                continue
             chunks.append({
                 **page,
                 "text": split,
