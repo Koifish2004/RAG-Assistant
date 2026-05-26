@@ -20,7 +20,7 @@ memory = ConversationSummaryBufferMemory(
 
 def chat(question):
     vector = embed_query(question)
-    top_chunks, _ = query(vector)
+    top_chunks, _ = query(vector, question)
     context = "\n\n".join([chunk["text"] for chunk in top_chunks])
 
     history = memory.load_memory_variables({})["history"]

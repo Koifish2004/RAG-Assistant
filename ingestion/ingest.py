@@ -11,3 +11,5 @@ store(embedded)
 
 print(f"Parsed {len(pages)} pages → {len(chunks)} chunks → {len(embedded)} embedded")
 print(embedded[0])
+
+client.close()

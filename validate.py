@@ -14,14 +14,14 @@ store(embedded)
 # 2. query it with a question related to your PDF
 question    = "What is this show about?"
 vector      = embed_query(question)
-top_chunks, distances = query(vector)
+top_chunks, distances = query(vector, question)
 
 # 3. print results
-#for i, (chunk, distance) in enumerate(zip(top_chunks, distances)):
-  #  print(f"\n--- Result {i+1} ---")
-   # print(f"Source: {chunk['source']} | Page: {chunk['page']}")
-   # print(f"Distance: {distance}")
-   # print(f"Text: {chunk['text']}")
+for i, (chunk, distance) in enumerate(zip(top_chunks, distances)):
+    print(f"\n--- Result {i+1} ---")
+    print(f"Source: {chunk['source']} | Page: {chunk['page']}")
+    print(f"Distance: {distance}")
+    print(f"Text: {chunk['text']}")
 
 
 #4. generate chat

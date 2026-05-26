@@ -19,7 +19,7 @@ If the answer is not in the context, say so."""
 
 def run_pipeline(question, top_k=5):
     vector = embed_query(question)
-    top_chunks, _ = query(vector, n_results=top_k)
+    top_chunks, _ = query(vector, question, n_results=top_k)
     context = "\n\n".join([c["text"] for c in top_chunks])
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
