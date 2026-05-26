@@ -6,19 +6,20 @@ from qdrant_client.models import (
     SparseIndexParams,
     PointStruct,
     SparseVector,
-    NamedVector,
-    NamedSparseVector,
-    SearchRequest,
     FusionQuery,
     Prefetch,
-    Fusion
+    Fusion,
+    MultiVectorConfig,
+    MultiVectorComparator,
+    HnswConfigDiff
 )
-from fastembed import SparseTextEmbedding
+from fastembed import SparseTextEmbedding, LateInteractionTextEmbedding
 import hashlib
 import atexit
 
 COLLECTION_NAME = "study_agent"
 DENSE_VECTOR_SIZE = 768
+COLBERT_VECTOR_SIZE = 128
 
 
 
@@ -26,7 +27,12 @@ DENSE_VECTOR_SIZE = 768
 
 client = QdrantClient(path="vectorstore/qdrant_db")
 atexit.register(client.close)
+
+
 sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
+colbert_model = LateInteractionTextEmbedding(
+    model_name="answerdotai/answerai-colbert-small-v1"
+)
 
 def ensure_collection():
     existing = [c.name for c in client.get_collections().collections]
@@ -36,6 +42,14 @@ def ensure_collection():
             "dense": VectorParams(
                 size = DENSE_VECTOR_SIZE,
                 distance = Distance.COSINE
+            ),
+            "multi": VectorParams(
+                size = COLBERT_VECTOR_SIZE,
+                distance = Distance.COSINE,
+                multivector_config = MultiVectorConfig(
+                    comparator=MultiVectorComparator.MAX_SIM
+                ),
+                hnsw_config=HnswConfigDiff(m=0)
             )
 
         }, sparse_vectors_config={
@@ -59,9 +73,9 @@ def store(embedded_chunks):
         chunk_idx = chunk["chunk_index"]
         text      = chunk["text"]
 
-        sparse_result = list(sparse_model.embed([text]))[0]
-
         chunk_id = hashlib.md5(f"{source}-page{page}-chunk{chunk_idx}".encode()).hexdigest()
+        sparse_result = list(sparse_model.embed([text]))[0]
+        colbert_result = list(colbert_model.embed([text]))[0]
         point = PointStruct(
             id=chunk_id,
             vector={
@@ -69,7 +83,8 @@ def store(embedded_chunks):
                 "sparse": SparseVector(
                     indices=sparse_result.indices.tolist(),
                     values=sparse_result.values.tolist()
-                )
+                ),
+                "multi": colbert_result.tolist()
             },
             payload={
                 "source":      source,
@@ -84,8 +99,10 @@ def store(embedded_chunks):
 
 
 def query(query_vector, query_text, n_results=5):
-    # generate sparse vector for query
+
     sparse_result = list(sparse_model.embed([query_text]))[0]
+    colbert_result = list(colbert_model.embed([query_text]))[0]
+
 
     results = client.query_points(
         collection_name=COLLECTION_NAME,
@@ -93,7 +110,7 @@ def query(query_vector, query_text, n_results=5):
             Prefetch(
                 query=query_vector,
                 using="dense",
-                limit=n_results * 2
+                limit=n_results * 4
             ),
             Prefetch(
                 query=SparseVector(
@@ -104,7 +121,8 @@ def query(query_vector, query_text, n_results=5):
                 limit=n_results * 2
             )
         ],
-        query=FusionQuery(fusion=Fusion.RRF),
+        query=colbert_result.tolist(),
+        using="multi",
         limit=n_results
     )
 
