@@ -1,16 +1,20 @@
-import pymupdf
+import pymupdf4llm
 
 def parse_pdf(filepath):
-    doc = pymupdf.open(filepath)
-    pages = []
-    for i, page in enumerate(doc):
-        text = page.get_text("text", sort=True)
-
-        if text.strip():
-            pages.append({
-                "text": text,
-                "source": filepath,
-                "page": i + 1,
-                "type": "text"
-            })
-    return pages
+    pages = pymupdf4llm.to_markdown(
+        filepath,
+        page_chunks=True,
+        header=False,
+        footer=False
+    )
+   
+    return [
+        {
+            "text": page["text"],
+            "source": filepath,
+            "page": page["metadata"]["page_number"],
+            "type": "text"
+        }
+        for page in pages
+        if page["text"].strip()
+    ]
