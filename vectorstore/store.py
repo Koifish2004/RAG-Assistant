@@ -1,3 +1,12 @@
+import warnings
+
+warnings.filterwarnings("ignore")
+
+import logging
+
+logging.getLogger("transformers").setLevel(logging.ERROR)
+
+
 from qdrant_client import QdrantClient, models
 from qdrant_client.models import (
     VectorParams,
