@@ -21,11 +21,13 @@ def parse_pdf(filepath):
     ]
 
 
-def parse_devdocs(docs_path):
+def parse_devdocs(docs_path, languages=None):
 
     chunks = []
 
     for folder in Path("data").iterdir():
+        if languages and folder.name not in languages:
+            continue
 
         if folder.is_dir():
             result = {}

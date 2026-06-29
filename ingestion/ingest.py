@@ -46,7 +46,7 @@ def ingest_pdf():
 
 
 def ingest():
-    chunks = parse_devdocs("data")
+    chunks = parse_devdocs("data", languages=["go"])
     embedded = embed_chunks(chunks)
     store(embedded)
 
