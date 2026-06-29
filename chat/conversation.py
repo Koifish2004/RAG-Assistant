@@ -5,6 +5,7 @@ from retrieval.generate import generate_with_history
 from langchain_classic.memory import ConversationSummaryBufferMemory
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, AIMessage
+import time
 
 SYSTEM_PROMPT = """You are a helpful study assistant. 
 Answer questions using only the provided context. 
@@ -13,14 +14,17 @@ If the answer is not in the context, say so."""
 llm = ChatOllama(model="mistral")
 
 memory = ConversationSummaryBufferMemory(
-    llm=llm,
-    max_token_limit=500,
-    return_messages=True
+    llm=llm, max_token_limit=500, return_messages=True
 )
 
+
 def chat(question, language):
+    t1 = time.time()
     vector = embed_query(question)
+    print(f"Embed: {time.time() - t1:.2f}s")
+    t2 = time.time()
     top_chunks, _ = query(vector, question, language)
+    print(f"Retrieve: {time.time() - t2:.2f}s")
     context = "\n\n".join([chunk["text"] for chunk in top_chunks])
 
     history = memory.load_memory_variables({})["history"]
@@ -31,12 +35,13 @@ def chat(question, language):
             messages.append({"role": "user", "content": message.content})
         elif isinstance(message, AIMessage):
             messages.append({"role": "assistant", "content": message.content})
-    messages.append({
-        "role": "user",
-        "content": f"Context:\n{context}\n\nQuestion: {question}"
-    })
+    messages.append(
+        {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
+    )
+    t3 = time.time()
 
     answer = generate_with_history(messages)
+    print(f"Generate: {time.time() - t3:.2f}s")
 
     # save to LangChain memory
     memory.save_context({"input": question}, {"output": answer})
