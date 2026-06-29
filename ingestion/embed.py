@@ -24,5 +24,5 @@ def embed_chunks(chunks):
 
 
 def embed_query(text):
-    response = requests.post(OLLAMA_URL, json={"model": MODEL, "prompt": text})
-    return response.json()["embedding"]
+    response = requests.post(OLLAMA_URL, json={"model": MODEL, "input": text})
+    return response.json()["embeddings"][0]
