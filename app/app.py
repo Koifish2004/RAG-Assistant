@@ -16,7 +16,7 @@ for message in st.session_state.messages:
 question = st.chat_input("Ask a question about your documents...")
 language = st.selectbox(
     "What language will you be coding in today?",
-    ("C++", "Go", "OpenJDK 21", "OpenJDK 8", "Python 3.14", "Rust", "JavaScript"),
+    ("C++", "go", "OpenJDK 21", "OpenJDK 8", "Python 3.14", "Rust", "JavaScript"),
 )
 if language:
     st.session_state.language = language
@@ -29,5 +29,5 @@ if question:
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             answer = chat(question, language)
-        st.write(answer)
+        st.write_stream(answer)
     st.session_state.messages.append({"role": "assistant", "content": answer})
