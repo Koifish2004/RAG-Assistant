@@ -27,7 +27,6 @@ if question:
     st.session_state.messages.append({"role": "user", "content": question})
 
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            answer = chat(question, language)
-        st.write_stream(answer)
+
+        answer = st.write_stream(chat(question, language))
     st.session_state.messages.append({"role": "assistant", "content": answer})
